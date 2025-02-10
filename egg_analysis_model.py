@@ -42,7 +42,7 @@ def query_page(text):
     prompts = {
         "male_svl": "Extract and return only the Male SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "female_svl": "Extract and return only the Female SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
-        "avg_svl": "Extract and return only the average SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
+        "avg_svl": "Extract and return only the **average SVL (snout-vent length)** from the following text, measured in **millimeters (mm)**. If separate values for males and females are provided, compute their **overall average** and return it in the format `avg` +- `uncertainty` (where `avg` is the mean of all values and `uncertainty` is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "min_clutch_size": "Extract and return only the **minimum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **lower value of a range** (e.g., '50 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "max_clutch_size": "Extract and return only the **maximum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **higher value of a range** (e.g., '200 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "egg_diameter": "Extract and return only the average egg diameter from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
@@ -65,9 +65,15 @@ def query_page(text):
     
     for field in ["male_svl", "female_svl", "avg_svl", "egg_diameter"]:
         if "+-" in results[field]:
-            avg, uncertainty = results[field].split("+-")
-            results[field] = avg.strip()
-            results[field + "_uncert"] = uncertainty.strip()
+            try: # current fix, but loses values
+                avg, uncertainty = results[field].split("+-")
+                results[field] = avg.strip()
+                results[field + "_uncert"] = uncertainty.strip()
+            except:
+                print("ERROR, here is the reason: ")
+                print(results[field])
+                results[field] = '-'
+                results[field + "_uncert"] = '-'
         else:
             results[field] = '-'
             results[field + "_uncert"] = '-'
@@ -77,6 +83,7 @@ def query_page(text):
 def run_all(genus, species):
     url = get_url(genus, species)
     xml_data = get_xml(url)
+
     if xml_data:
         if "NONEXISTENT PAGE" in xml_data:
             return "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist."
