@@ -85,11 +85,13 @@ def run_all(genus, species):
     xml_data = get_xml(url)
 
     if xml_data:
-        if "NONEXISTENT PAGE" in xml_data:
-            return "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist."
+        if "NONEXISTENT PAGE" in xml_data: # page does not exist
+            return "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"
 
         return query_page(xml_data)
-    return "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available"
+    
+    # no data available
+    return "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"
 
 def process_excel(file_path, output_file):
     try:
