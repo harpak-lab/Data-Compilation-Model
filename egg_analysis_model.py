@@ -40,13 +40,13 @@ def query_page(text):
     )
 
     prompts = {
-        # "male_svl": "Extract and return only the Male SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
-        # "female_svl": "Extract and return only the Female SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "male_svl": "Extract and return only the Male SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "female_svl": "Extract and return only the Female SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
-        "clutch_size": "Extract and return only the egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or a **range** (e.g., '50 eggs', '200-300 eggs'). Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
-        "egg_diameter": "Extract and return only the average egg diameter from the following text, measured in **millimeters (mm)**. Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
-        "emergence": "Extract and return only whether the species has a **larval stage** (emerges from the egg as a tadpole) or develops **directly** (emerges as a mini frog). Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
+        "avg_svl": "Extract and return only the average SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
+        "min_clutch_size": "Extract and return only the **minimum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **lower value of a range** (e.g., '50 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
+        "max_clutch_size": "Extract and return only the **maximum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **higher value of a range** (e.g., '200 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
+        "egg_diameter": "Extract and return only the average egg diameter from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
+        # "emergence": "Extract and return only whether the species has a **larval stage** (emerges from the egg as a tadpole) or develops **directly** (emerges as a mini frog). Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
     }
 
 
@@ -63,34 +63,26 @@ def query_page(text):
         )
         results[key] = response.choices[0].message.content.strip()
     
-    # Print parsed values for debugging
-    if "+-" in results["male_svl"]:
-        avg, uncertainty = results["male_svl"].split("+-")
-        results["male_svl"] = avg.strip()
-        results["male_svl_uncert"] = '-' if uncertainty.strip() == '0' else uncertainty.strip()
-    else:
-        results["male_svl"] = '-'
-        results["male_svl_uncert"] = '-'
+    for field in ["male_svl", "female_svl", "avg_svl", "egg_diameter"]:
+        if "+-" in results[field]:
+            avg, uncertainty = results[field].split("+-")
+            results[field] = avg.strip()
+            results[field + "_uncert"] = uncertainty.strip()
+        else:
+            results[field] = '-'
+            results[field + "_uncert"] = '-'
 
-    if "+-" in results["female_svl"]:
-        avg, uncertainty = results["female_svl"].split("+-")
-        results["female_svl"] = avg.strip()
-        results["female_svl_uncert"] = '-' if uncertainty.strip() == '0' else uncertainty.strip()
-    else:
-        results["female_svl"] = '-'
-        results["female_svl_uncert"] = '-'
-
-    return results["male_svl"], results["male_svl_uncert"], results["female_svl"], results["female_svl_uncert"], results["clutch_size"], results["egg_diameter"], results["emergence"]
+    return results["male_svl"], results["male_svl_uncert"], results["female_svl"], results["female_svl_uncert"], results["avg_svl"], results["avg_svl_uncert"], results["min_clutch_size"], results["max_clutch_size"], results["egg_diameter"], results["egg_diameter_uncert"]
 
 def run_all(genus, species):
     url = get_url(genus, species)
     xml_data = get_xml(url)
     if xml_data:
         if "NONEXISTENT PAGE" in xml_data:
-            return "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist."
+            return "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist.", "Page does not exist."
 
         return query_page(xml_data)
-    return "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available"
+    return "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available", "No data available"
 
 def process_excel(file_path, output_file):
     try:
@@ -104,21 +96,22 @@ def process_excel(file_path, output_file):
         if "Name" not in df.columns:
             raise ValueError("Could not find the 'Name' column under 'Name Stuff'.")
         
-        results_df = pd.DataFrame(columns=["Name", "Male SVL", "+/- SVL Male (mm)", "Female SVL", "+/- SVL Female (mm)", "Egg Clutch Size", "Average Egg Diameter", "Emergence"])
+        results_df = pd.DataFrame(columns=["Name", "SVL Male (mm)", "+/- SVL Male (mm)", "SVL Female (mm)", "+/- SVL Female (mm)", "Avg SVL Adult (mm)", "+/- SVL Adult (mm)", "Min Egg Clutch", "Max Egg Clutch", "Avg Egg Diameter (mm)", "+/- Egg Diameter (mm)"])
 
         i = 1
 
         for index, row in df.iterrows():
             name = str(row["Name"]).strip() # genus species
+
             if " " not in name: # skip entries without a valid genus-species pair
                 continue
 
             genus, species = name.split(" ", 1)
             print(f"Processing {i}: Genus={genus}, Species={species}")
 
-            male_svl, male_svl_uncert, female_svl, female_svl_uncert, clutch_size, egg_diameter, emergence = run_all(genus, species)
+            male_svl, male_svl_uncert, female_svl, female_svl_uncert, avg_svl, avg_svl_uncert, min_clutch_size, max_clutch_size, egg_diameter, egg_diameter_uncert = run_all(genus, species)
 
-            results_df.loc[len(results_df)] = [name, male_svl, male_svl_uncert, female_svl, female_svl_uncert, clutch_size, egg_diameter, emergence]
+            results_df.loc[len(results_df)] = [name, male_svl, male_svl_uncert, female_svl, female_svl_uncert, avg_svl, avg_svl_uncert, min_clutch_size, max_clutch_size, egg_diameter, egg_diameter_uncert]
             i += 1
 
         results_df.to_excel(output_file, index=False)
