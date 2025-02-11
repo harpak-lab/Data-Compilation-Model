@@ -56,9 +56,18 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
             df_my[col] = df_my[col].astype(str).str.strip().str.lower()
             df_ref[col] = df_ref[col].astype(str).str.strip().str.lower()
 
-            df_comparison[col] = df_my[col].where(df_my[col] == "-", df_my[col].where(df_my[col] == df_ref[col], df_ref[col].where(df_ref[col] == 'nan', "-").fillna("-").replace("nan", "-")))
+            df_comparison[col] = df_my[col].where(
+                df_my[col] == "-", 
+                df_my[col].where(
+                    df_my[col] == df_ref[col],
+                    df_ref[col].where(
+                        df_ref[col] == "nan", "invalid"
+                    )
+                )
+            )
 
-    # Save the comparison results
+    df_comparison = df_comparison.fillna("-").replace("nan", "-")
+
     df_comparison.to_excel(output_filepath, index=False)
     print(f"Comparison results saved to {output_filepath}")
 
