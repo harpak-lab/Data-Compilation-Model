@@ -164,11 +164,11 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
     df_comparison.to_excel(output_filepath, index=False)
     print(f"Comparative data saved to {output_filepath}")
 
-big_spreadsheet = "Froggy_Spreadsheet.xlsx"  # reference spreadsheet
+big_spreadsheet = "data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
 output_spreadsheet = "filtered_big_spreadsheet.xlsx"
-my_spreadsheet = "egg_analysis_results.xlsx"
+my_spreadsheet = "results/egg_analysis_results.xlsx"
 filtered_output = "filtered_results.xlsx"
-comparison_output = "cross_verification_results.xlsx"
+comparison_output = "results/cross_verification_results.xlsx"
 
 # full pipeline
 filter_big_spreadsheet(big_spreadsheet, "All Frogs", output_spreadsheet)

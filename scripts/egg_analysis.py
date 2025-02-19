@@ -130,7 +130,7 @@ def process_excel(file_path, output_file):
         print(f"Error processing Excel file: {e}")
         
 # input_file = input("Enter the path to the Excel file: ").strip()
-input_file = "Froggy_Spreadsheet.xlsx"
-output_file = "egg_analysis_results.xlsx"
+input_file = "data/Froggy_Spreadsheet.xlsx"
+output_file = "results/egg_analysis_results.xlsx"
 
 process_excel(input_file, output_file)
