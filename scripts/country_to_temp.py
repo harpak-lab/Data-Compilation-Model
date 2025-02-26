@@ -36,5 +36,5 @@ def temp_and_rainfall(name):
         exit()
     data = get_data(code)
     temp = float(list(data["data"]["tas"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
-    rainfall = float(list(data["data"]["pr"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
+    rainfall = float(list(data["data"]["pr"][code].values())[-1])
     return temp, rainfall
