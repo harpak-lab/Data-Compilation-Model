@@ -19,7 +19,8 @@ def find_location(name, file_path="data/geonames.xlsx"):
     return None
 
 def get_data(code):
-    url = f"https://cckpapi.worldbank.org/cckp/v1/cmip6-x0.25_climatology_tas_climatology_annual_1995-2014_median_historical_ensemble_all_mean/{code}?_format=json"
+    # url = f"https://cckpapi.worldbank.org/cckp/v1/cmip6-x0.25_climatology_tas_climatology_annual_1995-2014_median_historical_ensemble_all_mean/{code}?_format=json"
+    url = f"https://cckpapi.worldbank.org/cckp/v1/cmip6-x0.25_climatology_tas,pr_climatology_annual_1995-2014_median_historical_ensemble_all_mean/{code}?_format=json"
     response = requests.get(url) # get data from url
     
     if response.status_code == 200:
@@ -29,10 +30,11 @@ def get_data(code):
         print("Failed to retrieve data. Status code:", response.status_code)
         return None
 
-def get_temp(name):
+def temp_and_rainfall(name):
     code = find_location(name)
     if not code:
         exit()
     data = get_data(code)
-    temp = float(list(data["data"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
-    return temp
+    temp = float(list(data["data"]["tas"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
+    rainfall = float(list(data["data"]["pr"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
+    return temp, rainfall
