@@ -29,11 +29,10 @@ def get_data(code):
         print("Failed to retrieve data. Status code:", response.status_code)
         return None
 
-if __name__ == "__main__":
-    name = "Sinaloa"
+def get_temp(name):
     code = find_location(name)
     if not code:
         exit()
     data = get_data(code)
     temp = float(list(data["data"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
-    print(temp)
+    return temp
