@@ -70,22 +70,34 @@ def get_location_info(genus, species):
 
 ### PART 2: DERIVING TEMPERATURE AND RAINFALL FROM LOCATIONS ###
 
-def find_location(name, file_path="data/geonames.xlsx"):
+def find_location(locations, file_path="data/geonames.xlsx"):
     xls = pd.ExcelFile(file_path) # get geonames excel
 
     countries_df = pd.read_excel(xls, sheet_name="Countries")
-    country_match = countries_df[countries_df["Name"].str.lower() == name.lower()] # if name in countries sheet
-    if not country_match.empty:
-        return country_match.iloc[0]["ISO3 Code"] # ret country code
-    
     subnationals_df = pd.read_excel(xls, sheet_name="Subnationals")
-    subnational_match = subnationals_df[subnationals_df["Subnational Name"].str.lower() == name.lower()] # if name in subnationals sheet
-    if not subnational_match.empty:
-        return subnational_match.iloc[0]["Subnational Code"] # ret subnationals code
+
+    region_codes = []
+    region_countries = []
+    country_codes = []
+
+    # just update regions for now
+    for name in locations:
+        subnational_match = subnationals_df[subnationals_df["Subnational Name"].str.lower() == name.lower()] # if name in subnationals sheet
+        if not subnational_match.empty:
+            region_codes.append(subnational_match.iloc[0]["Subnational Code"]) # subnationals code
+            region_countries.append(subnational_match.iloc[0]["Country Code"])
+            locations.remove(name)
+
+    # update countries with remaining locations
+    for name in locations:
+        country_match = countries_df[countries_df["Name"].str.lower() == name.lower()] # if name in countries sheet
+        if not country_match.empty:
+            if not country_match.iloc[0]["ISO3 Code"] in region_countries:
+                country_codes.append(country_match.iloc[0]["ISO3 Code"]) # country code
     
-    print("Name not found.")
-    
-    return None
+    print(list(region_codes) + list(country_codes))
+    print(region_codes)
+    return list(region_codes) + list(country_codes)
 
 def get_data(code):
     url = f"https://cckpapi.worldbank.org/cckp/v1/cmip6-x0.25_climatology_tas,pr_climatology_annual_1995-2014_median_historical_ensemble_all_mean/{code}?_format=json"
@@ -98,16 +110,17 @@ def get_data(code):
         print("Failed to retrieve data. Status code:", response.status_code)
         return None
 
-def temp_and_rainfall(name):
-    code = find_location(name)
-    if not code:
-        return None, None
-    data = get_data(code)
-    if not data:
-        return None, None
-    temp = float(list(data["data"]["tas"][code].values())[-1]) # get the last value in KV (most recent year as far as I understand)
-    rainfall = float(list(data["data"]["pr"][code].values())[-1])
-    return temp, rainfall
+def temp_and_rainfall(locations):
+    all_temps = []
+    all_rainfalls = []
+    codes = find_location(locations)
+    for code in codes:
+        if code:
+            data = get_data(code)
+            if data:
+                all_temps.append(float(list(data["data"]["tas"][code].values())[-1])) # get the last value in KV (most recent year as far as I understand)
+                all_rainfalls.append(float(list(data["data"]["pr"][code].values())[-1]))
+    return all_temps, all_rainfalls
 
 ### PART 3: COMBINE PROCESSES TO GET INFO FOR ALL SPECIES ###
 
@@ -127,19 +140,11 @@ for i, row in df_ref.iterrows():
     if i > 10:
         break
 
-    all_temps = []
-    all_rainfalls = []
-
     genus, species = row["Name"].split(' ')
 
     # process each location
     locations = get_location_info(genus, species)
-    for location in locations:
-        temp, rainfall = temp_and_rainfall(location)
-        if temp is not None:
-            all_temps.append(temp)
-        if rainfall is not None:
-            all_rainfalls.append(rainfall)
+    all_temps, all_rainfalls = temp_and_rainfall(locations)
     
     # update temperature and rainfall values in spreadsheet
     if all_temps:
