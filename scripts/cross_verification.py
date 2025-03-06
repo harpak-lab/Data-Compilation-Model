@@ -166,7 +166,7 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
 
 big_spreadsheet = "data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
 output_spreadsheet = "filtered_big_spreadsheet.xlsx"
-my_spreadsheet = "results/egg_analysis_results.xlsx"
+my_spreadsheet = "results/froggy_analysis_results.xlsx"
 filtered_output = "filtered_results.xlsx"
 comparison_output = "results/cross_verification_results.xlsx"
 

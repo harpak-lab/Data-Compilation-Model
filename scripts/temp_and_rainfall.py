@@ -174,6 +174,9 @@ if __name__ == "__main__":
             df_ref.at[i, "Max Rainfall"] = '-'
             df_ref.at[i, "Mean Rainfall"] = '-'
 
-    # write to new spreadsheet
-    df_ref.to_excel("results/temp_and_rainfall.xlsx", index=False)
-    print("Written to results/temp_and_rainfall.xlsx")
+    # get rid of existing spreadsheet and write new data to it
+    if os.path.exists("results/froggy_analysis_results.xlsx"):
+        os.remove("results/froggy_analysis_results.xlsx")
+
+    df_ref.to_excel("results/froggy_analysis_results.xlsx", index=False)
+    print("Written to results/froggy_analysis_results.xlsx")
