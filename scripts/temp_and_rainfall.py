@@ -143,11 +143,6 @@ if __name__ == "__main__":
     df_ref["Mean Rainfall"] = None
 
     for i, row in df_ref.iterrows():
-        # if i < 10:
-        #     continue
-
-        # if i > 30:
-        #     break
 
         genus, species = row["Name"].split(' ')
 
