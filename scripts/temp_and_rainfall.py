@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import pandas as pd
+import time
 
 load_dotenv()
 
@@ -86,26 +87,29 @@ def find_location(locations, file_path="data/geonames.xlsx"):
         if not subnational_match.empty:
             region_codes.append(subnational_match.iloc[0]["Subnational Code"]) # subnationals code
             region_countries.append(subnational_match.iloc[0]["Country Code"])
-            locations.remove(name)
 
-    # update countries with remaining locations
+    # update countries with locations
     for name in locations:
         country_match = countries_df[countries_df["Name"].str.lower() == name.lower()] # if name in countries sheet
         if not country_match.empty:
             if not country_match.iloc[0]["ISO3 Code"] in region_countries:
                 country_codes.append(country_match.iloc[0]["ISO3 Code"]) # country code
     
-    print(list(region_codes) + list(country_codes))
-    print(region_codes)
     return list(region_codes) + list(country_codes)
 
 def get_data(code):
     url = f"https://cckpapi.worldbank.org/cckp/v1/cmip6-x0.25_climatology_tas,pr_climatology_annual_1995-2014_median_historical_ensemble_all_mean/{code}?_format=json"
     response = requests.get(url) # get data from url
     
+    # print(response.headers)
+
     if response.status_code == 200:
         data = response.json()
         return data
+    elif response.status_code == 429:  # too many requests
+        print("Rate limit hit. Waiting before retrying...")
+        time.sleep(5)
+        return get_data(code)
     else:
         print("Failed to retrieve data. Status code:", response.status_code)
         return None
@@ -124,46 +128,57 @@ def temp_and_rainfall(locations):
 
 ### PART 3: COMBINE PROCESSES TO GET INFO FOR ALL SPECIES ###
 
-# read in initial results spreadsheet
-results_spreadsheet = "results/egg_analysis_results.xlsx"
-df_ref = pd.read_excel(results_spreadsheet)
+if __name__ == "__main__":
 
-# add columns for min, max, and mean temperature and rainfall
-df_ref["Min Temperature"] = None
-df_ref["Max Temperature"] = None
-df_ref["Mean Temperature"] = None
-df_ref["Min Rainfall"] = None
-df_ref["Max Rainfall"] = None
-df_ref["Mean Rainfall"] = None
+    # read in initial results spreadsheet
+    results_spreadsheet = "results/egg_analysis_results.xlsx"
+    df_ref = pd.read_excel(results_spreadsheet)
 
-for i, row in df_ref.iterrows():
-    if i > 10:
-        break
+    # add columns for min, max, and mean temperature and rainfall
+    df_ref["Min Temperature"] = None
+    df_ref["Max Temperature"] = None
+    df_ref["Mean Temperature"] = None
+    df_ref["Min Rainfall"] = None
+    df_ref["Max Rainfall"] = None
+    df_ref["Mean Rainfall"] = None
 
-    genus, species = row["Name"].split(' ')
+    for i, row in df_ref.iterrows():
+        # if i < 10:
+        #     continue
 
-    # process each location
-    locations = get_location_info(genus, species)
-    all_temps, all_rainfalls = temp_and_rainfall(locations)
-    
-    # update temperature and rainfall values in spreadsheet
-    if all_temps:
-        df_ref.at[i, "Min Temperature"] = min(all_temps)
-        df_ref.at[i, "Max Temperature"] = max(all_temps)
-        df_ref.at[i, "Mean Temperature"] = sum(all_temps) / len(all_temps)
-    else:
-        df_ref.at[i, "Min Temperature"] = '-'
-        df_ref.at[i, "Max Temperature"] = '-'
-        df_ref.at[i, "Mean Temperature"] = '-'
+        # if i > 30:
+        #     break
 
-    if all_rainfalls:
-        df_ref.at[i, "Min Rainfall"] = min(all_rainfalls)
-        df_ref.at[i, "Max Rainfall"] = max(all_rainfalls)
-        df_ref.at[i, "Mean Rainfall"] = sum(all_rainfalls) / len(all_rainfalls)
-    else:
-        df_ref.at[i, "Min Rainfall"] = '-'
-        df_ref.at[i, "Max Rainfall"] = '-'
-        df_ref.at[i, "Mean Rainfall"] = '-'
+        genus, species = row["Name"].split(' ')
 
-# write to new spreadsheet
-df_ref.to_excel("results/new_results.xlsx", index=False)
+        print("Processing {}: {} {}".format(i, genus, species))
+
+        # process each location
+        locations = get_location_info(genus, species)
+        if locations:
+            all_temps, all_rainfalls = temp_and_rainfall(locations)
+        else:
+            all_temps, all_rainfalls = None, None
+        
+        # update temperature and rainfall values in spreadsheet
+        if all_temps:
+            df_ref.at[i, "Min Temperature"] = min(all_temps)
+            df_ref.at[i, "Max Temperature"] = max(all_temps)
+            df_ref.at[i, "Mean Temperature"] = sum(all_temps) / len(all_temps)
+        else:
+            df_ref.at[i, "Min Temperature"] = '-'
+            df_ref.at[i, "Max Temperature"] = '-'
+            df_ref.at[i, "Mean Temperature"] = '-'
+
+        if all_rainfalls:
+            df_ref.at[i, "Min Rainfall"] = min(all_rainfalls)
+            df_ref.at[i, "Max Rainfall"] = max(all_rainfalls)
+            df_ref.at[i, "Mean Rainfall"] = sum(all_rainfalls) / len(all_rainfalls)
+        else:
+            df_ref.at[i, "Min Rainfall"] = '-'
+            df_ref.at[i, "Max Rainfall"] = '-'
+            df_ref.at[i, "Mean Rainfall"] = '-'
+
+    # write to new spreadsheet
+    df_ref.to_excel("results/temp_and_rainfall.xlsx", index=False)
+    print("Written to results/temp_and_rainfall.xlsx")
