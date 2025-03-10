@@ -46,7 +46,6 @@ def query_page(text):
         "min_clutch_size": "Extract and return only the **minimum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **lower value of a range** (e.g., '50 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "max_clutch_size": "Extract and return only the **maximum** egg clutch size from the following text. This refers to the **number of eggs laid per clutch**, given as a **whole number** or the **higher value of a range** (e.g., '200 eggs' from '50-200 eggs'). If only a single value is present, return that value. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "egg_diameter": "Extract and return only the average egg diameter from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
-        # "emergence": "Extract and return only whether the species has a **larval stage** (emerges from the egg as a tadpole) or develops **directly** (emerges as a mini frog). Do not include any explanations, labels, or additional text. If not available, respond with '-'.\n\nText: {text}\n\nResponse:"
     }
 
 

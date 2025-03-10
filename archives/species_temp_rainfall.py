@@ -1,6 +1,6 @@
 import pandas as pd
-from species_to_country import get_location_info
-from country_to_temp import temp_and_rainfall
+from archives.species_to_country import get_location_info
+from archives.country_to_temp import temp_and_rainfall
 
 # read in initial results spreadsheet
 results_spreadsheet = "results/egg_analysis_results.xlsx"
