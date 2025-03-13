@@ -6,6 +6,12 @@ import time
 
 load_dotenv()
 
+'''
+IUCN Red List takes genus, species and outputs regular string locs (i.e. “Texas”)
+Use geonames.xlsx to convert locs to loc codes
+CCKP takes loc codes and outputs temp, rainfall
+'''
+
 ### PART 1: DERIVING LOCATIONS FROM SPECIES ###
 
 TAXA_API_URL = "https://api.iucnredlist.org/api/v4/taxa/scientific_name"
@@ -131,16 +137,18 @@ def temp_and_rainfall(locations):
 if __name__ == "__main__":
 
     # read in initial results spreadsheet
-    results_spreadsheet = "results/egg_analysis_results.xlsx"
+    results_spreadsheet = "results/froggy_analysis_results.xlsx"
     df_ref = pd.read_excel(results_spreadsheet)
 
     # add columns for min, max, and mean temperature and rainfall
     df_ref["Min Temperature"] = None
     df_ref["Max Temperature"] = None
     df_ref["Mean Temperature"] = None
+    df_ref["Std. Dev. Temperature"] = None
     df_ref["Min Rainfall"] = None
     df_ref["Max Rainfall"] = None
     df_ref["Mean Rainfall"] = None
+    df_ref["Std. Dev. Rainfall"] = None
 
     for i, row in df_ref.iterrows():
 
@@ -160,19 +168,23 @@ if __name__ == "__main__":
             df_ref.at[i, "Min Temperature"] = min(all_temps)
             df_ref.at[i, "Max Temperature"] = max(all_temps)
             df_ref.at[i, "Mean Temperature"] = sum(all_temps) / len(all_temps)
+            df_ref.at[i, "Std. Dev. Temperature"] = pd.Series(all_temps).std()
         else:
             df_ref.at[i, "Min Temperature"] = '-'
             df_ref.at[i, "Max Temperature"] = '-'
             df_ref.at[i, "Mean Temperature"] = '-'
+            df_ref.at[i, "Std. Dev. Temperature"] = '-'
 
         if all_rainfalls:
             df_ref.at[i, "Min Rainfall"] = min(all_rainfalls)
             df_ref.at[i, "Max Rainfall"] = max(all_rainfalls)
             df_ref.at[i, "Mean Rainfall"] = sum(all_rainfalls) / len(all_rainfalls)
+            df_ref.at[i, "Std. Dev. Rainfall"] = pd.Series(all_rainfalls).std()
         else:
             df_ref.at[i, "Min Rainfall"] = '-'
             df_ref.at[i, "Max Rainfall"] = '-'
             df_ref.at[i, "Mean Rainfall"] = '-'
+            df_ref.at[i, "Std. Dev. Rainfall"] = '-'
 
     # get rid of existing spreadsheet and write new data to it
     if os.path.exists("results/froggy_analysis_results.xlsx"):
