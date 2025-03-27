@@ -10,8 +10,8 @@ results_spreadsheet = "results/froggy_analysis_results.xlsx"
 df_ref = pd.read_excel(results_spreadsheet)
 
 # new cols for altitude
-df_ref["Min Altitude (m)"] = None
-df_ref["Max Altitude (m)"] = None
+df_ref["Min Altitude"] = None
+df_ref["Max Altitude"] = None
 
 for i, row in df_ref.iterrows():
     genus, species = row["Name"].split(' ')
@@ -33,8 +33,8 @@ for i, row in df_ref.iterrows():
         min_altitude, max_altitude = None, None
 
     # save to dataframe
-    df_ref.at[i, "Min Altitude (m)"] = min_altitude if min_altitude is not None else "-"
-    df_ref.at[i, "Max Altitude (m)"] = max_altitude if max_altitude is not None else "-"
+    df_ref.at[i, "Min Altitude"] = min_altitude if min_altitude is not None else "-"
+    df_ref.at[i, "Max Altitude"] = max_altitude if max_altitude is not None else "-"
 
 # remove existing spreadsheet and write new data to it
 if os.path.exists("results/froggy_analysis_results.xlsx"):
