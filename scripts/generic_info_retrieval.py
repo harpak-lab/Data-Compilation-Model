@@ -15,46 +15,43 @@ def get_iucn_info(genus, species):
     print("No iucn info found")
     return None
 
-def query_model(text):
+def query_model(text, prompts):
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    prompts = {
-        "habitat": "Extract and return only the habitats and specific countries from the following text. Output the habitats and countries as a single comma-separated list on one line with no line breaks or bullet points. Do not include any explanations, descriptions, or additional information. If not available, respond with '-'.",
-        "diet": "Extract and return only the diet from the following text. Output the diet as a single comma-separated list on one line with no line breaks or bullet points. Do not include any explanations, descriptions, or additional information—just a plain list. If not available, respond with '-'.",
-        "size": "Extract and return only the size from the following text. This may be length or weight depending on what is available. Do not include any explanations, descriptions, or additional information—just a number and unit. If not available, respond with '-'.",
-        # "temp": "Extract and return only the average annual temperature of the area this species is found in. Do not include any explanations, descriptions, or additional information—just a number and unit. If not available, respond with '-'."
+    prompt_templates = {
+        "list": "Extract and return only the {var} from the following text. Output the {var} as a single comma-separated list on one line with no line breaks or bullet points. Do not include any explanations, descriptions, or additional information. If not available, respond with '-'.",
+        "number": "Extract and return only the {var} from the following text. Do not include any explanations, descriptions, or additional information—just a number and unit. If not available, respond with '-'."
     }
-
-    '''
-    the above should become something like:
-    prompts = {
-        "habitat": "list",
-        "diet": "list",
-        "size": "number",
-    }
-    '''
 
     results = {}
 
-    for key, instruction in prompts.items():
+    for var_name, var_type in prompts.items():
+        prompt = prompt_templates[var_type].format(var=var_name)
+
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": f"{instruction}\n\nText: {text}"}
+                {"role": "user", "content": f"{prompt}\n\nText: {text}"}
             ],
             temperature=0.0,
-            max_tokens=150  # increase if needed
+            max_tokens=150
         )
-        results[key] = response.choices[0].message.content.strip()
+        results[var_name.capitalize()] = response.choices[0].message.content.strip()
 
-    return results["habitat"], results["diet"], results["size"]
+    return results
 
 if __name__ == "__main__":
     animal_list = ["Mus musculus", "Herichthys cyanoguttatus", "Coris julis", "Lagothrix lagothricha", "Bombus impatiens", "Turdis migratorius", "Ambystoma maculatum"]
-    features = ["Habitat", "Diet", "Size"]
 
+    prompts = {
+        "habitats and specific countries": "list",
+        "diet": "list",
+        "size (length or weight)": "number"
+    }
+
+    features = [f.capitalize() for f in prompts.keys()]
     results_df = pd.DataFrame(columns=["Name"] + features)
 
     for a in animal_list:
@@ -68,8 +65,9 @@ if __name__ == "__main__":
             results_df = pd.concat([results_df, pd.DataFrame([[a] + ["-"] * len(features)], columns=results_df.columns)], ignore_index=True)
             continue
 
-        habitat, diet, size = query_model(iucn_info)
+        result_dict = query_model(iucn_info, prompts)
+        result_row = [a] + [result_dict.get(feature, "-") for feature in features]
 
-        results_df = pd.concat([results_df, pd.DataFrame([[a, habitat, diet, size]], columns=results_df.columns)], ignore_index=True)
-    
+        results_df = pd.concat([results_df, pd.DataFrame([result_row], columns=results_df.columns)], ignore_index=True)
+
     results_df.to_excel("results/generic_retrieval_results.xlsx", index=False)
