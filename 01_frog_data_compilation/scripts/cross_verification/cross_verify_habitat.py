@@ -1,8 +1,8 @@
 import pandas as pd
 
-reference_path = 'data/Reference_Froggy_Spreadsheet.xlsx'
-analysis_path = 'results/froggy_analysis_results.xlsx'
-cross_verification_path = 'results/cross_verification_results.xlsx'
+reference_path = '01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx'
+analysis_path = '01_frog_data_compilation/results/froggy_analysis_results.xlsx'
+cross_verification_path = '01_frog_data_compilation/results/cross_verification_results.xlsx'
 
 columns_to_check = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '13', '14', '15', '16']
 

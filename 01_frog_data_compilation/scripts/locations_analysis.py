@@ -1,8 +1,8 @@
 import pandas as pd
 from temp_and_rainfall import get_location_info
 
-df_ours = pd.read_excel("results/temp_and_rainfall.xlsx")
-df_big = pd.read_excel("data/Reference_Froggy_Spreadsheet.xlsx")
+df_ours = pd.read_excel("01_frog_data_compilation/results/temp_and_rainfall.xlsx")
+df_big = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
 
 missing_data_locs = []
 loc_diffs = {}

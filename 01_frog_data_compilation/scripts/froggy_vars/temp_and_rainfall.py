@@ -77,7 +77,7 @@ def get_location_info(genus, species):
 
 ### PART 2: DERIVING TEMPERATURE AND RAINFALL FROM LOCATIONS ###
 
-def find_location(locations, file_path="data/geonames.xlsx"):
+def find_location(locations, file_path="01_frog_data_compilation/data/geonames.xlsx"):
     xls = pd.ExcelFile(file_path) # get geonames excel
 
     countries_df = pd.read_excel(xls, sheet_name="Countries")
@@ -137,7 +137,7 @@ def temp_and_rainfall(locations):
 if __name__ == "__main__":
 
     # read in initial results spreadsheet
-    results_spreadsheet = "results/froggy_analysis_results.xlsx"
+    results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
     df_ref = pd.read_excel(results_spreadsheet)
 
     # add columns for min, max, and mean temperature and rainfall
@@ -187,8 +187,8 @@ if __name__ == "__main__":
             df_ref.at[i, "Std. Dev. Rainfall"] = '-'
 
     # get rid of existing spreadsheet and write new data to it
-    if os.path.exists("results/froggy_analysis_results.xlsx"):
-        os.remove("results/froggy_analysis_results.xlsx")
+    if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
+        os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
 
-    df_ref.to_excel("results/froggy_analysis_results.xlsx", index=False)
-    print("Written to results/froggy_analysis_results.xlsx")
+    df_ref.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
+    print("Written to 01_frog_data_compilation/results/froggy_analysis_results.xlsx")

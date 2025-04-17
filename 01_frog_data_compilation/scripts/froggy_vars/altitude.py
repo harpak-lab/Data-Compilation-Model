@@ -6,7 +6,7 @@ from temp_and_rainfall import get_assessment_id, get_species_assessment
 load_dotenv()
 
 # read in spreadsheet to dataframe
-results_spreadsheet = "results/froggy_analysis_results.xlsx"
+results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 df_ref = pd.read_excel(results_spreadsheet)
 
 # new cols for altitude
@@ -37,8 +37,8 @@ for i, row in df_ref.iterrows():
     df_ref.at[i, "Max Altitude"] = max_altitude if max_altitude is not None else "-"
 
 # remove existing spreadsheet and write new data to it
-if os.path.exists("results/froggy_analysis_results.xlsx"):
-    os.remove("results/froggy_analysis_results.xlsx")
+if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
+    os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
 
-df_ref.to_excel("results/froggy_analysis_results.xlsx", index=False)
-print("Updated file saved to results/froggy_analysis_results.xlsx")
+df_ref.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
+print("Updated file saved to 01_frog_data_compilation/results/froggy_analysis_results.xlsx")

@@ -109,9 +109,9 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
     print(f"Comparative data saved to {output_filepath}")
 
 def compare_altitudes():
-    analysis_df = pd.read_excel("results/froggy_analysis_results.xlsx")
-    reference_df = pd.read_excel("data/Reference_Froggy_Spreadsheet.xlsx")
-    cross_verification_df = pd.read_excel("results/cross_verification_results.xlsx")
+    analysis_df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+    reference_df = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
+    cross_verification_df = pd.read_excel("01_frog_data_compilation/results/cross_verification_results.xlsx")
 
     result = pd.DataFrame(columns=["Min Altitude", "Max Altitude"])
 
@@ -139,16 +139,16 @@ def compare_altitudes():
     cross_verification_df["Min Altitude"] = result["Min Altitude"]
     cross_verification_df["Max Altitude"] = result["Max Altitude"]
 
-    if os.path.exists("results/cross_verification_results"):
-        os.remove("results/cross_verification_results")
+    if os.path.exists("01_frog_data_compilation/results/cross_verification_results"):
+        os.remove("01_frog_data_compilation/results/cross_verification_results")
 
-    cross_verification_df.to_excel("results/cross_verification_results.xlsx", index=False)
+    cross_verification_df.to_excel("01_frog_data_compilation/results/cross_verification_results.xlsx", index=False)
 
-big_spreadsheet = "data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
+big_spreadsheet = "01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
 output_spreadsheet = "filtered_big_spreadsheet.xlsx"
-my_spreadsheet = "results/froggy_analysis_results.xlsx"
+my_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 filtered_output = "filtered_results.xlsx"
-comparison_output = "results/cross_verification_results.xlsx"
+comparison_output = "01_frog_data_compilation/results/cross_verification_results.xlsx"
 
 # full pipelin
 filter_big_spreadsheet(big_spreadsheet, "All Frogs", output_spreadsheet)

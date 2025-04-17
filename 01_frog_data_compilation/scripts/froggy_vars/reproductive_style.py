@@ -46,7 +46,7 @@ def query_reproductive_style(text):
     return response.choices[0].message.content.strip()
 
 if __name__ == "__main__":
-    results_spreadsheet = "results/froggy_analysis_results.xlsx"
+    results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 
     df_all = pd.read_excel(results_spreadsheet)
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
                 if i % 100 == 0 and i != 0:
                     print(f"Auto-saving confidence data at row {i}")
-                    egg_style_confidence_df.to_excel("results/egg_style_confidence.xlsx", index=False)
+                    egg_style_confidence_df.to_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx", index=False)
                 
                 break # move onto next species
 
@@ -93,12 +93,12 @@ if __name__ == "__main__":
             except openai.AuthenticationError as e:
                 if "billing" in str(e).lower() or "insufficient_quota" in str(e).lower():
                     print("Billing error: saving progress and exiting.")
-                    egg_style_confidence_df.to_excel("results/egg_style_confidence.xlsx", index=False)
-                    df_all.to_excel("results/froggy_analysis_results.xlsx", index=False)
+                    egg_style_confidence_df.to_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx", index=False)
+                    df_all.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
                     exit() # end program
                 else:
                     raise
 
-    egg_style_confidence_df.to_excel("results/egg_style_confidence.xlsx", index=False)
-    df_all.to_excel("results/froggy_analysis_results.xlsx", index=False)
+    egg_style_confidence_df.to_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx", index=False)
+    df_all.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
     print("All results saved successfully.")

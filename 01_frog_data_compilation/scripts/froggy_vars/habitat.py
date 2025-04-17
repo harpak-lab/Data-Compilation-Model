@@ -19,7 +19,7 @@ def habitat_codes(json_data):
 
     return list(codes)
 
-df = pd.read_excel("results/froggy_analysis_results.xlsx")
+df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
 
 for i in range(1, 17):
     df[str(i)] = 0
@@ -48,7 +48,7 @@ for index, row in df.iterrows():
         if code in df.columns:
             df.at[index, code] = 1
 
-if os.path.exists("results/froggy_analysis_results.xlsx"):
-    os.remove("results/froggy_analysis_results.xlsx")
+if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
+    os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
 
-df.to_excel("results/froggy_analysis_results.xlsx", index=False)
+df.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)

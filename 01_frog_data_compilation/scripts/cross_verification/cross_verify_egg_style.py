@@ -20,10 +20,10 @@ def get_green_highlighted_names(filepath, sheet_name="All Frogs"):
 correct_confidences = []
 incorrect_confidences = []
 
-cross_df = pd.read_excel("results/cross_verification_results.xlsx")
-ref_df = pd.read_excel("data/Reference_Froggy_Spreadsheet.xlsx")
-analysis_df = pd.read_excel("results/froggy_analysis_results.xlsx")
-confidence_df = pd.read_excel("results/egg_style_confidence.xlsx")
+cross_df = pd.read_excel("01_frog_data_compilation/results/cross_verification_results.xlsx")
+ref_df = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
+analysis_df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+confidence_df = pd.read_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx")
 
 ref_df["Name"] = ref_df["Name"].astype(str).str.strip()
 ref_df["Egg Style"] = ref_df["Egg Style"].fillna("-").astype(str).str.strip()
@@ -35,7 +35,7 @@ cross_df["Name"] = cross_df["Name"].astype(str).str.strip()
 if "Egg Style" not in cross_df.columns:
     cross_df["Egg Style"] = "-"
 
-green_names = get_green_highlighted_names("data/Reference_Froggy_Spreadsheet.xlsx")
+green_names = get_green_highlighted_names("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
 analysis_df = analysis_df[analysis_df["Name"].isin(green_names)]
 
 ref_egg_dict = ref_df.set_index("Name")["Egg Style"].to_dict()
@@ -70,7 +70,7 @@ def determine_egg_style(name):
         return "invalid"
 
 cross_df["Egg Style"] = cross_df["Name"].apply(determine_egg_style)
-cross_df.to_excel("results/cross_verification_results.xlsx", index=False)
+cross_df.to_excel("01_frog_data_compilation/results/cross_verification_results.xlsx", index=False)
 
 print(correct_confidences)
 print(sum(correct_confidences) / len(correct_confidences))
