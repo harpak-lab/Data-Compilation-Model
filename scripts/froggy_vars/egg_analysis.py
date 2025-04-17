@@ -5,7 +5,7 @@ https://amphibiaweb.org/api/ws.html
 import os
 from bs4 import BeautifulSoup
 import requests
-from openai import AzureOpenAI
+from openai import OpenAI
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -33,11 +33,7 @@ def get_xml(url):
 
 def query_page(text):
 
-    client = AzureOpenAI(
-        api_key=os.getenv("AZURE_API_KEY"),
-        api_version=os.getenv("AZURE_API_VERSION"),
-        azure_endpoint=os.getenv("AZURE_ENDPOINT")
-    )
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     prompts = {
         "male_svl": "Extract and return only the Male SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
@@ -53,7 +49,7 @@ def query_page(text):
 
     for key, prompt in prompts.items():
         response = client.chat.completions.create(
-            model=os.getenv("MODEL_AZURE_ID"),
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": prompt.format(text=text)}
             ],
