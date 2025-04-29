@@ -1,9 +1,11 @@
+import sys
 import os
 import openai
+import time
 from openai import OpenAI
 import pandas as pd
 from dotenv import load_dotenv
-from froggy_vars.temp_and_rainfall import get_assessment_id, get_species_assessment, find_location, get_data
+from species_info_utils import get_assessment_id, get_species_assessment, find_location, get_data
 
 load_dotenv()
 
@@ -40,13 +42,31 @@ def get_info(genus, species, need_iucn, need_cckp):
 
     return iucn_info, cckp_info
 
+def safe_openai_chat_completion(client, model, messages, temperature=0.0, max_tokens=150):
+    while True:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+            return response
+        except openai.RateLimitError as e:
+            print(f"OpenAI RateLimitError: {e}. Waiting before retrying...")
+            time.sleep(60)
+        except Exception as e:
+            print(f"OpenAI API error: {e}")
+            raise e
+
+
 def query_model(iucn_text, cckp_text, prompts):
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     prompt_templates = {
         "list": "Extract and return only the {var} from the following text. Output the {var} as a single comma-separated list on one line with no line breaks or bullet points. Do not include any explanations, descriptions, or additional information. If not available, respond with '-'.",
-        "number": "Extract and return only the {var} from the following text. Do not include any explanations, descriptions, or additional information—just a number and unit. If not available, respond with '-'."
+        "number": "Extract and return only the {var} from the following text. If there are multiple values, average them. Do not include any explanations, descriptions, or additional information—just a number and unit. If not available, respond with '-'."
     }
 
     results = {}
@@ -63,7 +83,18 @@ def query_model(iucn_text, cckp_text, prompts):
             results[var_name.capitalize()] = "-"
             continue
             
-        response = client.chat.completions.create(
+        # response = client.chat.completions.create(
+        #     model="gpt-4o",
+        #     messages=[
+        #         {"role": "system", "content": "You are a helpful assistant."},
+        #         {"role": "user", "content": f"{prompt}\n\nText: {text}"}
+        #     ],
+        #     temperature=0.0,
+        #     max_tokens=150
+        # )
+
+        response = safe_openai_chat_completion(
+            client,
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
@@ -72,6 +103,7 @@ def query_model(iucn_text, cckp_text, prompts):
             temperature=0.0,
             max_tokens=150
         )
+
         results[var_name.capitalize()] = response.choices[0].message.content.strip()
 
     return results
