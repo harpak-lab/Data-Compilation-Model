@@ -11,16 +11,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Construct AmphibiaWeb query URL from genus and species
 def get_url(genus, species):
     base_url = "https://amphibiaweb.org/cgi/amphib_ws"
     return f"{base_url}?where-genus={genus}&where-species={species}&src=amphibiaweb"
 
+# Fetch XML data from AmphibiaWeb and check for error tags
 def get_xml(url):
     try:
         response = requests.get(url)
         response.raise_for_status()
 
-        # check if page exists
         soup = BeautifulSoup(response.text, 'lxml-xml')
         error_tag = soup.find("error")
         if error_tag:
@@ -31,10 +32,12 @@ def get_xml(url):
         print(f"Error fetching data: {e}")
         return None
 
+# Use GPT-4o to extract biological trait data from XML text
 def query_page(text):
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+    # Define prompts for each target trait
     prompts = {
         "male_svl": "Extract and return only the Male SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
         "female_svl": "Extract and return only the Female SVL (snout-vent length) from the following text, measured in **millimeters (mm)**. If a range is provided, return it in the format `avg` +- `uncertainty` (where the first value is the average and the second is half the range). If only a single value is present, return it in the format `avg` +- `0`. If not available, respond with '-'.\n\nText: {text}\n\nResponse:",
@@ -47,6 +50,7 @@ def query_page(text):
 
     results = {}
 
+    # Run each prompt through GPT-4o and store results
     for key, prompt in prompts.items():
         response = client.chat.completions.create(
             model="gpt-4o",
@@ -58,6 +62,7 @@ def query_page(text):
         )
         results[key] = response.choices[0].message.content.strip()
     
+    # Parse SVL and egg diameter fields to separate average and uncertainty
     for field in ["male_svl", "female_svl", "avg_svl", "egg_diameter"]:
         if "+-" in results[field]:
             try: # current fix, but loses values
@@ -75,19 +80,20 @@ def query_page(text):
 
     return results["male_svl"], results["male_svl_uncert"], results["female_svl"], results["female_svl_uncert"], results["avg_svl"], results["avg_svl_uncert"], results["min_clutch_size"], results["max_clutch_size"], results["egg_diameter"], results["egg_diameter_uncert"]
 
+# Run entire pipeline for a given genus/species
 def run_all(genus, species):
     url = get_url(genus, species)
     xml_data = get_xml(url)
 
     if xml_data:
-        if "NONEXISTENT PAGE" in xml_data: # page does not exist
+        if "NONEXISTENT PAGE" in xml_data:
             return "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"
 
         return query_page(xml_data)
     
-    # no data available
     return "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"
 
+# Process input Excel file and apply extraction logic to each species
 def process_excel(file_path, output_file):
     try:
         xls = pd.ExcelFile(file_path)
@@ -95,7 +101,7 @@ def process_excel(file_path, output_file):
         if "All Frogs" not in xls.sheet_names:
             raise ValueError("The 'All Frogs' sheet was not found in the Excel file.")
 
-        df = xls.parse("All Frogs", header=1) # treat second row as headers
+        df = xls.parse("All Frogs", header=1)
 
         if "Name" not in df.columns:
             raise ValueError("Could not find the 'Name' column under 'Name Stuff'.")
@@ -104,10 +110,11 @@ def process_excel(file_path, output_file):
 
         i = 1
 
+        # Loop through each frog and run data retrieval
         for index, row in df.iterrows():
-            name = str(row["Name"]).strip() # genus species
+            name = str(row["Name"]).strip()
 
-            if " " not in name: # skip entries without a valid genus-species pair
+            if " " not in name: # Skip entries without a valid genus-species pair
                 continue
 
             genus, species = name.split(" ", 1)
@@ -124,6 +131,7 @@ def process_excel(file_path, output_file):
     except Exception as e:
         print(f"Error processing Excel file: {e}")
         
+# Set input/output paths and trigger the pipeline
 input_file = "01_frog_data_compilation/data/Froggy_Spreadsheet.xlsx"
 output_file = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 

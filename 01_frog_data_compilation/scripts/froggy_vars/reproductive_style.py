@@ -15,6 +15,7 @@ import time
 
 load_dotenv()
 
+# Send prompt to LLM to classify reproductive style and return confidence score
 def query_reproductive_style(text):
 
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -46,6 +47,7 @@ def query_reproductive_style(text):
     return response.choices[0].message.content.strip()
 
 if __name__ == "__main__":
+    # Load frog dataset to augment with reproductive style and confidence
     results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 
     df_all = pd.read_excel(results_spreadsheet)
@@ -53,6 +55,7 @@ if __name__ == "__main__":
     df_all["Egg Style"] = None
     egg_style_confidence_df = pd.DataFrame(columns=["Name", "Egg Style", "Confidence"])
 
+    # Loop through each species and retrieve XML + LLM classification
     for i, row in df_all.iterrows():
 
         genus, species = row["Name"].split(' ')
@@ -79,17 +82,20 @@ if __name__ == "__main__":
                 df_all.at[i, "Egg Style"] = egg_style
                 egg_style_confidence_df.loc[len(egg_style_confidence_df)] = [row["Name"], egg_style, confidence]
 
+                # Auto-save every 100 entries
                 if i % 100 == 0 and i != 0:
                     print(f"Auto-saving confidence data at row {i}")
                     egg_style_confidence_df.to_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx", index=False)
                 
-                break # move onto next species
+                break # Exit retry loop on success
 
+            # Handle OpenAI rate limits with wait-and-retry
             except openai.RateLimitError:
                 print("Rate limit hit. Trying again in 5 seconds")
                 time.sleep(5)
                 continue  # retry same row
 
+            # Handle billing or quota-related errors
             except openai.AuthenticationError as e:
                 if "billing" in str(e).lower() or "insufficient_quota" in str(e).lower():
                     print("Billing error: saving progress and exiting.")
@@ -99,6 +105,7 @@ if __name__ == "__main__":
                 else:
                     raise
 
+    # Save final results after loop completion
     egg_style_confidence_df.to_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx", index=False)
     df_all.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
     print("All results saved successfully.")

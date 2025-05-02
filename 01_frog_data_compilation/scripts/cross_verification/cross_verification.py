@@ -3,43 +3,40 @@ from openpyxl import load_workbook
 import os
 import numpy as np
 
+# Extract green-highlighted rows from Excel sheet and clean uncertainty columns
 def filter_big_spreadsheet(input_filepath, sheet_name, output_filepath):
-    # gets just green highlighted rows and returns them as dataframe
     wb = load_workbook(filename=input_filepath, data_only=True)
     ws = wb[sheet_name]
 
-    green_rows = [] # store highlighted entries
+    green_rows = []
     for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=1, max_col=1):
         for cell in row:
             if cell.fill.start_color.index == "FF92D050": # hex for green
                 green_rows.append(cell.row)
     
     df = pd.read_excel(input_filepath, sheet_name=sheet_name)
-    
-    # filter only green-highlighted rows
     df_filtered = df.iloc[[r - 2 for r in green_rows]]
 
-    # uncertainty cols -- make blanks 0 for cross verification
+    # Replace blank uncertainty values with 0 for comparison
     uncertainty_columns = ["+/- SVL Male (mm)", "+/- SVL Female (mm)", "+/- SVL Adult (mm)", "+/- Egg Diameter (mm)"]
     for col in uncertainty_columns:
         if col in df_filtered.columns:
             df_filtered.loc[:, col] = df_filtered[col].fillna(0)
 
-
     df_filtered.to_excel(output_filepath, index=False)
 
+# Subset our spreadsheet to match only species in the filtered reference list
 def filter_my_spreadsheet(my_spreadsheet, filtered_spreadsheet, output_filepath):
     df_my = pd.read_excel(my_spreadsheet)
     df_filtered = pd.read_excel(filtered_spreadsheet)
     
-    # safety check: "name" column exists
     if "Name" not in df_my.columns or "Name" not in df_filtered.columns:
         raise ValueError("Missing 'Name' column in one of the spreadsheets.")
     
-    # spreadsheet should only include species in filtered spreadsheet
     df_my_filtered = df_my[df_my["Name"].isin(df_filtered["Name"])]
     df_my_filtered.to_excel(output_filepath, index=False)
 
+# Compare values with uncertainty; flag as match, overlap, or invalid
 def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepath):
     df_ref = pd.read_excel(reference_spreadsheet)
     df_filtered = pd.read_excel(my_filtered_spreadsheet)
@@ -50,6 +47,7 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
     df_comparison = pd.DataFrame()
     df_comparison["Name"] = df_merged["Name"]
 
+    # Groups of fields to compare
     groups = [
         {"columns": ['SVL Male (mm)', '+/- SVL Male (mm)'], 'type': 'value_uncertainty'},
         {"columns": ['SVL Female (mm)', '+/- SVL Female (mm)'], 'type': 'value_uncertainty'},
@@ -58,15 +56,18 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
         {"columns": ['Min Egg Clutch', 'Max Egg Clutch'], 'type': 'min_max'},
     ]
 
+    # Validity check for values
     def is_valid(value):
         if pd.isna(value): return False
         if isinstance(value, str) and value.strip() == '-': return False
         try: float(value); return True
         except: return False
 
+    # Check if value ranges overlap
     def ranges_overlap(a_low, a_high, b_low, b_high):
         return a_low <= b_high and b_low <= a_high
 
+    # Loop through rows and compare each field group
     for group in groups:
         cols = group['columns']
         group_type = group['type']
@@ -108,6 +109,7 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
     df_comparison.to_excel(output_filepath, index=False)
     print(f"Comparative data saved to {output_filepath}")
 
+# Compare min and max altitudes for overlap or exact match
 def compare_altitudes():
     analysis_df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
     reference_df = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
@@ -144,21 +146,23 @@ def compare_altitudes():
 
     cross_verification_df.to_excel("01_frog_data_compilation/results/cross_verification_results.xlsx", index=False)
 
+# Define file paths for full comparison pipeline
 big_spreadsheet = "01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
 output_spreadsheet = "filtered_big_spreadsheet.xlsx"
 my_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
 filtered_output = "filtered_results.xlsx"
 comparison_output = "01_frog_data_compilation/results/cross_verification_results.xlsx"
 
-# full pipelin
+# Run entire verification workflow
 filter_big_spreadsheet(big_spreadsheet, "All Frogs", output_spreadsheet)
 filter_my_spreadsheet(my_spreadsheet, output_spreadsheet, filtered_output)
 compare_values(output_spreadsheet, filtered_output, comparison_output)
 
-# get rid of intermediary spreadsheets
+# Clean up intermediate files
 if os.path.exists(output_spreadsheet):
     os.remove(output_spreadsheet)
 if os.path.exists(filtered_output):
     os.remove(filtered_output)
 
+# Compare altitude values
 compare_altitudes()
