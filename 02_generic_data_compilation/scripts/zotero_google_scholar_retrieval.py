@@ -9,6 +9,7 @@ SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
 ZOTERO_USER_ID = os.getenv("ZOTERO_USER_ID")
 ZOTERO_API_KEY = os.getenv("ZOTERO_API_KEY")
 
+# Search Google Scholar using SerpAPI and extract paper metadata including DOI
 def search_scholar(query, max_results=5):
     print(f"Searching Google Scholar for '{query}'...")
 
@@ -29,25 +30,22 @@ def search_scholar(query, max_results=5):
             link = result.get("link")
             doi = None
 
-            # try to find a DOI from different places
+            # Attempt to extract DOI from various link formats
+
             link = result.get('link', '')
             doi = None
 
-            # "doi/abs/" in the link
             if "doi/abs/" in link:
                 doi = link.split("doi/abs/")[-1].split('?')[0]
 
-            # "doi.org/" in publication_info
             if not doi and 'publication_info' in result:
                 pub_info = result['publication_info'].get('summary', '')
                 if "doi.org/" in pub_info:
                     doi = pub_info.split("doi.org/")[-1].split()[0]
 
-            # main link directly has "doi.org/"
             if not doi and "doi.org/" in link:
                 doi = link.split("doi.org/")[-1].split('?')[0]
 
-            # resource links
             if not doi and 'resources' in result:
                 for resource in result['resources']:
                     if 'doi.org/' in resource.get('link', ''):
@@ -57,6 +55,7 @@ def search_scholar(query, max_results=5):
 
     return papers
 
+# Add papers to Zotero via DOI using the Zotero API
 def add_to_zotero(papers):
     headers = {
         "Zotero-API-Key": ZOTERO_API_KEY,
@@ -85,6 +84,7 @@ def add_to_zotero(papers):
         else:
             print(f"No DOI found for {paper['title']} — skipping.")
 
+# Main CLI entry point: search Scholar and upload to Zotero
 def main():
     query = input("Enter your Google Scholar search query: ").strip()
     papers = search_scholar(query)

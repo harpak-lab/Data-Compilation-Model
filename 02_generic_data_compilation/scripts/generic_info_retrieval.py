@@ -9,10 +9,10 @@ from species_info_utils import get_assessment_id, get_species_assessment, find_l
 
 load_dotenv()
 
+# Retrieve CCKP climate data for all associated location codes
 def get_cckp_info(assessment_info):
     cckp_info = None
     if "locations" in assessment_info:
-        # grab location data from species info
         locations = [loc["description"]["en"] for loc in assessment_info["locations"]]
         if locations:
             cckp_info = []
@@ -24,6 +24,7 @@ def get_cckp_info(assessment_info):
                         cckp_info.append(data)
     return cckp_info
 
+# Main retrieval function for IUCN and/or CCKP data
 def get_info(genus, species, need_iucn, need_cckp):
     iucn_info, cckp_info = None, None
 
@@ -42,6 +43,7 @@ def get_info(genus, species, need_iucn, need_cckp):
 
     return iucn_info, cckp_info
 
+# Retry-safe wrapper for OpenAI chat completion
 def safe_openai_chat_completion(client, model, messages, temperature=0.0, max_tokens=150):
     while True:
         try:
@@ -59,9 +61,8 @@ def safe_openai_chat_completion(client, model, messages, temperature=0.0, max_to
             print(f"OpenAI API error: {e}")
             raise e
 
-
+# Use LLM to extract features based on prompt types and source text
 def query_model(iucn_text, cckp_text, prompts):
-
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     prompt_templates = {
@@ -71,27 +72,17 @@ def query_model(iucn_text, cckp_text, prompts):
 
     results = {}
 
+    # Flatten CCKP list into one string block
     if isinstance(cckp_text, list):
-        cckp_text = "\n\n".join([str(entry) for entry in cckp_text]) # flatted cckp from list of json objects to string
+        cckp_text = "\n\n".join([str(entry) for entry in cckp_text])
 
     for var_name, var_type in prompts.items():
-
         prompt = prompt_templates[var_type[0]].format(var=var_name)
         text = iucn_text if var_type[1] == "iucn" else cckp_text
 
         if text is None: # model doesn't have info for this field
             results[var_name.capitalize()] = "-"
             continue
-            
-        # response = client.chat.completions.create(
-        #     model="gpt-4o",
-        #     messages=[
-        #         {"role": "system", "content": "You are a helpful assistant."},
-        #         {"role": "user", "content": f"{prompt}\n\nText: {text}"}
-        #     ],
-        #     temperature=0.0,
-        #     max_tokens=150
-        # )
 
         response = safe_openai_chat_completion(
             client,
@@ -108,9 +99,12 @@ def query_model(iucn_text, cckp_text, prompts):
 
     return results
 
+# Main script execution
 if __name__ == "__main__":
+    # List of species to query
     animal_list = ["Mus musculus", "Herichthys cyanoguttatus", "Coris julis", "Lagothrix lagothricha", "Bombus impatiens", "Turdis migratorius", "Ambystoma maculatum"]
 
+    # Prompts with type (list/number) and source (iucn/cckp)
     prompts = {
         "habitats and specific countries": ("list", "iucn"),
         "diet": ("list", "iucn"),
@@ -126,29 +120,27 @@ if __name__ == "__main__":
 
         print(f"Processing {genus} {species}")
 
-        # make a list containing the second item in each tuple in prompts
-        prompts_2nd_vals = [item[1] for item in prompts.values()]
-    
+        prompts_2nd_vals = [item[1] for item in prompts.values()]    
         iucn_info, cckp_info = get_info(genus, species, "iucn" in prompts_2nd_vals, "cckp" in prompts_2nd_vals)
 
-        # we need iucn and iucn is not available, and we dont need cckp
+        # Handle missing data conditions
         if ((iucn_info is None) and ("iucn" in prompts_2nd_vals)) and ("cckp" not in prompts_2nd_vals):
             results_df = pd.concat([results_df, pd.DataFrame([[a] + ["-"] * len(features)], columns=results_df.columns)], ignore_index=True)
             continue
 
-        # we need cckp and cckp is not available, and we dont need iucn
         if ((cckp_info is None) and ("cckp" in prompts_2nd_vals)) and ("iucn" not in prompts_2nd_vals):
             results_df = pd.concat([results_df, pd.DataFrame([[a] + ["-"] * len(features)], columns=results_df.columns)], ignore_index=True)
             continue
 
-        # we need both and both aren't available
         if ((iucn_info is None) and ("iucn" in prompts_2nd_vals)) and (cckp_info is None and ("cckp" in prompts_2nd_vals)):
             results_df = pd.concat([results_df, pd.DataFrame([[a] + ["-"] * len(features)], columns=results_df.columns)], ignore_index=True)
             continue
 
+        # Run LLM and save results
         result_dict = query_model(iucn_info, cckp_info, prompts)
         result_row = [a] + [result_dict.get(feature, "-") for feature in features]
 
         results_df = pd.concat([results_df, pd.DataFrame([result_row], columns=results_df.columns)], ignore_index=True)
 
+    # Save final results
     results_df.to_excel("02_generic_data_compilation/results/generic_retrieval_results.xlsx", index=False)

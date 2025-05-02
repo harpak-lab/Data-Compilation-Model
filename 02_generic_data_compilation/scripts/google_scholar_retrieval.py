@@ -8,6 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
+# Set up a headless Chrome browser using Selenium
 def setup_driver():
     options = Options()
     options.add_argument("--headless=new")
@@ -16,11 +17,13 @@ def setup_driver():
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     return driver
 
+# Perform Google Scholar search with the given query
 def search_scholar(driver, query):
     search_url = f"https://scholar.google.com/scholar?q={query.replace(' ', '+')}"
     driver.get(search_url)
     time.sleep(random.uniform(2, 4))
 
+# Extract title, result link, and PDF (if available) from search results
 def extract_papers(driver, max_results=5):
     papers = []
     results = driver.find_elements(By.CSS_SELECTOR, 'div.gs_ri')[:max_results]
@@ -44,6 +47,7 @@ def extract_papers(driver, max_results=5):
 
     return papers
 
+# Attempt to download PDFs from the extracted paper entries
 def download_pdfs(papers, folder="02_generic_data_compilation/downloads"):
     if not os.path.exists(folder):
         os.makedirs(folder)
@@ -62,6 +66,7 @@ def download_pdfs(papers, folder="02_generic_data_compilation/downloads"):
             except Exception as e:
                 print(f"Failed to download PDF for: {paper['title']}. Error: {e}")
 
+# Main driver for Scholar scraping workflow
 def main():
     query = input("Enter your Google Scholar search query: ").strip()
     driver = setup_driver()
