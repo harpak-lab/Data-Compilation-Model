@@ -23,10 +23,10 @@ correct_confidences = []
 incorrect_confidences = []
 
 # Load spreadsheets for cross-checking
-cross_df = pd.read_excel("01_frog_data_compilation/results/cross_verification_results.xlsx")
+cross_df = pd.read_csv("01_frog_data_compilation/results/cross_verification_results.csv")
 ref_df = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
-analysis_df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
-confidence_df = pd.read_excel("01_frog_data_compilation/results/egg_style_confidence.xlsx")
+analysis_df = pd.read_csv("01_frog_data_compilation/results/froggy_analysis_results.csv")
+confidence_df = pd.read_csv("01_frog_data_compilation/results/egg_style_confidence.csv")
 
 # Standardize and clean 'Name' and 'Egg Style' fields
 ref_df["Name"] = ref_df["Name"].astype(str).str.strip()
@@ -79,7 +79,7 @@ def determine_egg_style(name):
 
 # Apply classification logic and update output spreadsheet
 cross_df["Egg Style"] = cross_df["Name"].apply(determine_egg_style)
-cross_df.to_excel("01_frog_data_compilation/results/cross_verification_results.xlsx", index=False)
+cross_df.to_csv("01_frog_data_compilation/results/cross_verification_results.csv", index=False)
 
 # Print average confidence for correct and incorrect cases
 print(correct_confidences)

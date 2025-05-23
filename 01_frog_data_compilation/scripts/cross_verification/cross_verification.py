@@ -23,23 +23,23 @@ def filter_big_spreadsheet(input_filepath, sheet_name, output_filepath):
         if col in df_filtered.columns:
             df_filtered.loc[:, col] = df_filtered[col].fillna(0)
 
-    df_filtered.to_excel(output_filepath, index=False)
+    df_filtered.to_csv(output_filepath.replace(".xlsx", ".csv"), index=False)
 
 # Subset our spreadsheet to match only species in the filtered reference list
 def filter_my_spreadsheet(my_spreadsheet, filtered_spreadsheet, output_filepath):
-    df_my = pd.read_excel(my_spreadsheet)
-    df_filtered = pd.read_excel(filtered_spreadsheet)
+    df_my = pd.read_csv(my_spreadsheet)
+    df_filtered = pd.read_csv(filtered_spreadsheet)
     
     if "Name" not in df_my.columns or "Name" not in df_filtered.columns:
         raise ValueError("Missing 'Name' column in one of the spreadsheets.")
     
     df_my_filtered = df_my[df_my["Name"].isin(df_filtered["Name"])]
-    df_my_filtered.to_excel(output_filepath, index=False)
+    df_my_filtered.to_csv(output_filepath.replace(".xlsx", ".csv"), index=False)
 
 # Compare values with uncertainty; flag as match, overlap, or invalid
 def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepath):
-    df_ref = pd.read_excel(reference_spreadsheet)
-    df_filtered = pd.read_excel(my_filtered_spreadsheet)
+    df_ref = pd.read_csv(reference_spreadsheet)
+    df_filtered = pd.read_csv(my_filtered_spreadsheet)
 
     # merge by name
     df_merged = pd.merge(df_ref, df_filtered, on="Name", suffixes=("_ref", "_my"), how="left")
@@ -106,14 +106,14 @@ def compare_values(reference_spreadsheet, my_filtered_spreadsheet, output_filepa
                     df_comparison.at[i, cols[0]] = "invalid"
                     df_comparison.at[i, cols[1]] = "invalid"
 
-    df_comparison.to_excel(output_filepath, index=False)
+    df_comparison.to_csv(output_filepath.replace(".xlsx", ".csv"), index=False)
     print(f"Comparative data saved to {output_filepath}")
 
 # Compare min and max altitudes for overlap or exact match
 def compare_altitudes():
-    analysis_df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+    analysis_df = pd.read_csv("01_frog_data_compilation/results/froggy_analysis_results.csv")
     reference_df = pd.read_excel("01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx")
-    cross_verification_df = pd.read_excel("01_frog_data_compilation/results/cross_verification_results.xlsx")
+    cross_verification_df = pd.read_csv("01_frog_data_compilation/results/cross_verification_results.csv")
 
     result = pd.DataFrame(columns=["Min Altitude", "Max Altitude"])
 
@@ -144,14 +144,14 @@ def compare_altitudes():
     if os.path.exists("01_frog_data_compilation/results/cross_verification_results"):
         os.remove("01_frog_data_compilation/results/cross_verification_results")
 
-    cross_verification_df.to_excel("01_frog_data_compilation/results/cross_verification_results.xlsx", index=False)
+    cross_verification_df.to_csv("01_frog_data_compilation/results/cross_verification_results.csv", index=False)
 
 # Define file paths for full comparison pipeline
 big_spreadsheet = "01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx"  # reference spreadsheet
 output_spreadsheet = "filtered_big_spreadsheet.xlsx"
-my_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
-filtered_output = "filtered_results.xlsx"
-comparison_output = "01_frog_data_compilation/results/cross_verification_results.xlsx"
+my_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.csv"
+filtered_output = "filtered_results.csv"
+comparison_output = "01_frog_data_compilation/results/cross_verification_results.csv"
 
 # Run entire verification workflow
 filter_big_spreadsheet(big_spreadsheet, "All Frogs", output_spreadsheet)

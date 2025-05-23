@@ -125,7 +125,7 @@ def process_excel(file_path, output_file):
             results_df.loc[len(results_df)] = [name, male_svl, male_svl_uncert, female_svl, female_svl_uncert, avg_svl, avg_svl_uncert, min_clutch_size, max_clutch_size, egg_diameter, egg_diameter_uncert]
             i += 1
 
-        results_df.to_excel(output_file, index=False)
+        results_df.to_csv(output_file, index=False)
         print(f"Results saved to {output_file}")
 
     except Exception as e:
@@ -133,6 +133,6 @@ def process_excel(file_path, output_file):
         
 # Set input/output paths and trigger the pipeline
 input_file = "01_frog_data_compilation/data/Froggy_Spreadsheet.xlsx"
-output_file = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
+output_file = "01_frog_data_compilation/results/froggy_analysis_results.csv"
 
 process_excel(input_file, output_file)

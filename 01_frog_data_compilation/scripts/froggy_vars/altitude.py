@@ -6,8 +6,8 @@ from temp_and_rainfall import get_assessment_id, get_species_assessment
 load_dotenv()
 
 # Load frog results spreadsheet into DataFrame
-results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
-df_ref = pd.read_excel(results_spreadsheet)
+results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.csv"
+df_ref = pd.read_csv(results_spreadsheet)
 
 # Add new columns for altitude limits
 df_ref["Min Altitude"] = None
@@ -36,8 +36,8 @@ for i, row in df_ref.iterrows():
     df_ref.at[i, "Max Altitude"] = max_altitude if max_altitude is not None else "-"
 
 # Overwrite existing file with updated altitude data
-if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
-    os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.csv"):
+    os.remove("01_frog_data_compilation/results/froggy_analysis_results.csv")
 
-df_ref.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
+df_ref.to_csv("01_frog_data_compilation/results/froggy_analysis_results.csv", index=False)
 print("Updated file saved to 01_frog_data_compilation/results/froggy_analysis_results.xlsx")

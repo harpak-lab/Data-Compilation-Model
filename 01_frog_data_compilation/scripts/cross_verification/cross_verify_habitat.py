@@ -2,16 +2,16 @@ import pandas as pd
 
 # File paths
 reference_path = '01_frog_data_compilation/data/Reference_Froggy_Spreadsheet.xlsx'
-analysis_path = '01_frog_data_compilation/results/froggy_analysis_results.xlsx'
-cross_verification_path = '01_frog_data_compilation/results/cross_verification_results.xlsx'
+analysis_path = '01_frog_data_compilation/results/froggy_analysis_results.csv'
+cross_verification_path = '01_frog_data_compilation/results/cross_verification_results.csv'
 
 # Habitat columns to check (IUCN top-level codes)
 columns_to_check = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '13', '14', '15', '16']
 
 # Load reference, analysis, and cross-verification dataframes
 df_reference = pd.read_excel(reference_path, dtype=str)
-df_analysis = pd.read_excel(analysis_path, dtype=str)
-df_cross = pd.read_excel(cross_verification_path, dtype=str)
+df_analysis = pd.read_csv(analysis_path, dtype=str)
+df_cross = pd.read_csv(cross_verification_path, dtype=str)
 
 # Use species name as index for fast lookup
 df_reference.set_index('Name', inplace=True)
@@ -39,4 +39,4 @@ for col in columns_to_check:
     df_cross[col] = df_cross['Name'].apply(lambda name: compare_values(name, col))
 
 # Save updated cross-verification file with habitat comparisons
-df_cross.to_excel(cross_verification_path, index=False)
+df_cross.to_csv(cross_verification_path, index=False)

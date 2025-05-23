@@ -21,7 +21,7 @@ def habitat_codes(json_data):
     return list(codes)
 
 # Load frog dataset
-df = pd.read_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+df = pd.read_csv("01_frog_data_compilation/results/froggy_analysis_results.csv")
 
 # Initialize habitat columns 1–16 with zeros (one-hot style encoding)
 for i in range(1, 17):
@@ -54,7 +54,7 @@ for index, row in df.iterrows():
             df.at[index, code] = 1
 
 # Overwrite old Excel file with updated habitat columns
-if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
-    os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.csv"):
+    os.remove("01_frog_data_compilation/results/froggy_analysis_results.csv")
 
-df.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
+df.to_csv("01_frog_data_compilation/results/froggy_analysis_results.csv", index=False)

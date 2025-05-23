@@ -143,4 +143,4 @@ if __name__ == "__main__":
         results_df = pd.concat([results_df, pd.DataFrame([result_row], columns=results_df.columns)], ignore_index=True)
 
     # Save final results
-    results_df.to_excel("02_generic_data_compilation/results/generic_retrieval_results.xlsx", index=False)
+    results_df.to_csv("02_generic_data_compilation/results/generic_retrieval_results.csv", index=False)

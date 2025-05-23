@@ -141,8 +141,8 @@ def temp_and_rainfall(locations):
 if __name__ == "__main__":
 
     # Load the results spreadsheet
-    results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.xlsx"
-    df_ref = pd.read_excel(results_spreadsheet)
+    results_spreadsheet = "01_frog_data_compilation/results/froggy_analysis_results.csv"
+    df_ref = pd.read_csv(results_spreadsheet)
 
     # Add columns for climate statistics
     df_ref["Min Temperature"] = None
@@ -192,8 +192,8 @@ if __name__ == "__main__":
             df_ref.at[i, "Std. Dev. Rainfall"] = '-'
 
     # Overwrite old Excel file with updated climate data
-    if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.xlsx"):
-        os.remove("01_frog_data_compilation/results/froggy_analysis_results.xlsx")
+    if os.path.exists("01_frog_data_compilation/results/froggy_analysis_results.csv"):
+        os.remove("01_frog_data_compilation/results/froggy_analysis_results.csv")
 
-    df_ref.to_excel("01_frog_data_compilation/results/froggy_analysis_results.xlsx", index=False)
+    df_ref.to_csv("01_frog_data_compilation/results/froggy_analysis_results.csv", index=False)
     print("Written to 01_frog_data_compilation/results/froggy_analysis_results.xlsx")
