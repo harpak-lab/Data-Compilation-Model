@@ -2,6 +2,8 @@
 
 trAIt is a publicly-available software for the retrieval of species characteristics from scientific literature catalogued in the Europe PubMed Central (PubMed) database. Using a large language model (LLM), trAIt retrieves papers, synthesizes their content using a consensus-based model, and outputs a species-by-characteristic table.
 
+Our preprint describing this software can be found here: https://www.biorxiv.org/content/10.64898/2026.06.19.732660v1
+
 ---
 
 ## Overview
